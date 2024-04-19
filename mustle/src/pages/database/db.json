@@ -1,0 +1,40 @@
+{
+  "account": [
+    {
+      "id": 1,
+      "total_capital": "200",
+      "total_profit": "100",
+      "total_account": "500"
+    }
+  ],
+
+  "sales": [
+    {
+      "id": 1,
+      "date": "04-12-24",
+      "products": [
+        {
+          "id": 1,
+          "product_name": "YipYap",
+          "retail": "2",
+          "resell": "4",
+          "quantity": "10",
+          "sold": "0"
+        }
+      ],
+      "capital": "200",
+      "profit": "100"
+    }
+  ],
+
+  "products": [
+    {
+      "id": 1,
+      "product_name": "YipYap",
+      "retail": "2",
+      "resell": "4",
+      "quantity": "10",
+      "sold": "0"
+    }
+  ]
+}
