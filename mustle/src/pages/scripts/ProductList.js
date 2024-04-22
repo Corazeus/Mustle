@@ -11,9 +11,6 @@ export default {
   name: "ProductList",
   setup() {
     // Define reactive variables using ref()
-    const products = ref([]); // Array to store products
-
-    const showProductActionDialog = ref(false); // Boolean to control visibility of Add Product dialog
 
     const productInfo = ref({
       // Object to store data of new product being added
@@ -37,19 +34,40 @@ export default {
       { name: "actions", label: "Actions", align: "left", field: "actions" },
     ]);
 
+    //Input for search field
+    const searchText = ref(""); // Search text
+
+    const products = ref([]); // Array to store products
+
+    const showProductActionDialog = ref(false); // Boolean to control visibility of Add Product dialog
+
+    const showSellDialog = ref(false); // Boolean to control visibility of Sell Dialog
+
     // isEditMode is a boolean to check if currently in edit mode or not
     let isEditMode = ref(false);
 
     // The product currently being edited
     let currentEditingProduct = ref(null);
 
-    //Input for search field
-    const searchText = ref(""); // Search text
+    // The product currently being sold
+    let currentSellProduct = ref(null);
+
+    // The product currently being sold
+    let sellQuantity = ref(0);
 
     const SetAllProductsData = async () => {
-      GetAllProducts().then((response) => {
-        products.value = response;
-      });
+      const allProducts = await GetAllProducts();
+      products.value = allProducts;
+    };
+
+    //Reset Product Information Inputs
+    const ResetProductInformation = () => {
+      productInfo.value = {
+        product_name: "",
+        retail: 0,
+        resell: 0,
+        quantity: 0,
+      };
     };
 
     // Fetch products when the component is mounted
@@ -74,12 +92,7 @@ export default {
       AddProduct(productInfo.value);
 
       //Reset Product Information Inputs
-      productInfo.value = {
-        product_name: "",
-        retail: 0,
-        resell: 0,
-        quantity: 0,
-      };
+      ResetProductInformation();
 
       //Close dialog
       showProductActionDialog.value = false;
@@ -90,13 +103,8 @@ export default {
 
     // Cancel Adding New Product
     const cancelAddProduct = () => {
-      // Reset the newProduct object and close the Add Product dialog
-      productInfo.value = {
-        product_name: "",
-        retail: 0,
-        resell: 0,
-        quantity: 0,
-      };
+      //Reset Product Information Inputs
+      ResetProductInformation();
 
       //When Cancelling the dialog it sets edit mode to false
       isEditMode.value = false;
@@ -111,13 +119,9 @@ export default {
       UpdateProduct(currentEditingProduct.value, productInfo.value);
 
       //Reset Product Information Inputs
-      productInfo.value = {
-        product_name: "",
-        retail: 0,
-        resell: 0,
-        quantity: 0,
-      };
+      ResetProductInformation();
 
+      //Set the current editing product to none
       currentEditingProduct.value = null;
 
       //When Cancelling the dialog it sets edit mode to false
@@ -131,19 +135,21 @@ export default {
     };
 
     // Edit Product
-    const editProduct = (productId) => {
+    const editProduct = async (productId) => {
       isEditMode.value = true;
       currentEditingProduct.value = productId;
       showProductActionDialog.value = true;
 
-      GetProductById(productId).then((response) => {
-        productInfo.value = {
-          product_name: response.product_name,
-          retail: response.retail,
-          resell: response.resell,
-          quantity: response.quantity,
-        };
-      });
+      //Store returned value of GetProductById in a variable
+      const currentProduct = await GetProductById(productId);
+
+      //Set the products information to save
+      productInfo.value = {
+        product_name: currentProduct.product_name,
+        retail: currentProduct.retail,
+        resell: currentProduct.resell,
+        quantity: currentProduct.quantity,
+      };
 
       console.log("Edit product:", currentEditingProduct.value);
     };
@@ -157,6 +163,41 @@ export default {
       console.log("Deleted product:", productId);
     };
 
+    const selectProductFromTable = async (productId) => {
+      showSellDialog.value = true;
+      currentSellProduct.value = productId;
+      const productDetails = await GetProductById(productId);
+
+      productInfo.value = {
+        product_name: productDetails.product_name,
+        resell: productDetails.resell,
+      };
+    };
+
+    const cancelSell = () => {
+      showSellDialog.value = false;
+      currentSellProduct.value = null;
+      //Reset Product Information Inputs
+      ResetProductInformation();
+    };
+
+    const confirmSell = async () => {
+      const productDetails = await GetProductById(currentSellProduct.value);
+
+      let newProductInfo = {
+        product_name: productDetails.product_name,
+        retail: productDetails.retail,
+        resell: productDetails.resell,
+        quantity: parseInt(productDetails.quantity) - sellQuantity.value,
+      };
+
+      UpdateProduct(currentSellProduct.value, newProductInfo);
+      currentSellProduct.value = 0;
+      sellQuantity.value = 0;
+      showSellDialog.value = false;
+      SetAllProductsData();
+    };
+
     // Return reactive variables and functions
     return {
       products,
@@ -166,12 +207,17 @@ export default {
       columns,
       showProductActionDialog,
       isEditMode,
+      showSellDialog,
+      sellQuantity,
+      cancelSell,
+      confirmSell,
       ProductActionDialog,
       addProduct,
       cancelAddProduct,
       editProduct,
       deleteProduct,
       updateProduct,
+      selectProductFromTable,
     };
   },
 };
