@@ -1,4 +1,4 @@
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import {
   GetAllProducts,
   GetProductById,
@@ -12,7 +12,9 @@ export default {
   setup() {
     // Define reactive variables using ref()
     const products = ref([]); // Array to store products
+
     const showProductActionDialog = ref(false); // Boolean to control visibility of Add Product dialog
+
     const productInfo = ref({
       // Object to store data of new product being added
       product_name: "",
@@ -20,6 +22,7 @@ export default {
       resell: 0,
       quantity: 0,
     });
+
     const columns = ref([
       // Define table columns
       {
@@ -36,7 +39,12 @@ export default {
 
     // isEditMode is a boolean to check if currently in edit mode or not
     let isEditMode = ref(false);
+
+    // The product currently being edited
     let currentEditingProduct = ref(null);
+
+    //Input for search field
+    const searchText = ref(""); // Search text
 
     const SetAllProductsData = async () => {
       GetAllProducts().then((response) => {
@@ -46,6 +54,15 @@ export default {
 
     // Fetch products when the component is mounted
     onMounted(SetAllProductsData);
+
+    // Computed property to filter products based on search text
+    const filteredProducts = computed(() => {
+      return products.value.filter((product) =>
+        product.product_name
+          .toLowerCase()
+          .includes(searchText.value.toLowerCase())
+      );
+    });
 
     const ProductActionDialog = () => {
       showProductActionDialog.value = true;
@@ -143,6 +160,8 @@ export default {
     // Return reactive variables and functions
     return {
       products,
+      searchText,
+      filteredProducts,
       productInfo,
       columns,
       showProductActionDialog,

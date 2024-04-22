@@ -7,13 +7,14 @@
         </div>
 
         <!-- Display a table of products -->
-        <q-table :rows="products" :columns="columns" row-key="id" row-class="row-class" virtual-scroll>
+        <q-input v-model="searchText" label="Search" outlined dense />
+        <q-table :rows="filteredProducts" :columns="columns" row-key="id" row-class="row-class" virtual-scroll>
             <template v-slot:body="props">
                 <q-tr :props="props">
                     <q-td key="product_name" :props="props">{{ props.row.product_name }}</q-td>
-                    <q-td key="retail" :props="props">{{ props.row.retail }}</q-td>
-                    <q-td key="resell" :props="props">{{ props.row.resell }}</q-td>
-                    <q-td key="quantity" :props="props">{{ props.row.quantity }}</q-td>
+                    <q-td key="retail" :props="props">₱ {{ props.row.retail }}</q-td>
+                    <q-td key="resell" :props="props">₱ {{ props.row.resell }}</q-td>
+                    <q-td key="quantity" :props="props">{{ props.row.quantity }} pcs.</q-td>
                     <!-- Add edit and delete buttons for each row -->
                     <q-td key="actions" :props="props">
                         <q-btn @click="editProduct(props.row.id)" color="primary" icon="edit" dense flat />

@@ -35,18 +35,18 @@
       "sold": "0"
     },
     {
-      "product_name": "test123",
-      "retail": 0,
-      "resell": 0,
-      "quantity": 0,
-      "id": 4
+      "product_name": "Cream-O",
+      "retail": "7",
+      "resell": "10",
+      "quantity": "50",
+      "id": 6
     },
     {
-      "product_name": "Test12",
-      "retail": 0,
-      "resell": 0,
-      "quantity": 0,
-      "id": 5
+      "product_name": "Sweet Chili",
+      "retail": "1",
+      "resell": "3",
+      "quantity": "10",
+      "id": 7
     }
   ]
 }
