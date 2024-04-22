@@ -7,7 +7,6 @@
       "total_account": "500"
     }
   ],
-
   "sales": [
     {
       "id": 1,
@@ -26,7 +25,6 @@
       "profit": "100"
     }
   ],
-
   "products": [
     {
       "id": 1,
@@ -35,6 +33,20 @@
       "resell": "4",
       "quantity": "10",
       "sold": "0"
+    },
+    {
+      "product_name": "test123",
+      "retail": 0,
+      "resell": 0,
+      "quantity": 0,
+      "id": 4
+    },
+    {
+      "product_name": "Test12",
+      "retail": 0,
+      "resell": 0,
+      "quantity": 0,
+      "id": 5
     }
   ]
 }

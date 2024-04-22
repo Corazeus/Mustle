@@ -4,5 +4,4 @@
     </q-page>
 </template>
 
-<script setup>
-</script>
+<script src="./scripts/ProductListTemp.js"></script>

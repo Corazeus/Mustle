@@ -1,32 +1,34 @@
-import axios from "axios";
+import { ref, onMounted } from "vue";
+import { GetAccount } from "../api/api_requests";
 
 export default {
   name: "DashboardPage",
-  data() {
-    return {
-      totalSales: 0,
-      totalProfit: 0,
-      bestSellingItems: [],
-    };
-  },
-  methods: {
-    async fetchDashboardData() {
-      try {
-        const response = await axios.get("http://localhost:3000/account/1");
-        this.totalSales = response.data.total_account;
-        this.totalProfit = response.data.total_profit;
+  setup() {
+    // Define reactive variables using ref()
+    const totalAccount = ref(0);
+    const totalCapital = ref(0);
+    const totalProfit = ref(0);
+    //const bestSelling = ref([]);
 
-        const salesResponse = await axios.get("http://localhost:3000/sales");
-        // Assuming the first sale contains the best selling items
-        if (salesResponse.data.length > 0) {
-          this.bestSellingItems = salesResponse.data[0].products;
-        }
-      } catch (error) {
-        console.error("Error fetching dashboard data:", error);
-      }
-    },
-  },
-  mounted() {
-    this.fetchDashboardData();
+    //Function that is called when component is mounted
+    const SetAccountData = () => {
+      //GetAccount is a function from api_requests js.
+      GetAccount().then((response) => {
+        //Set the values from response data
+        totalAccount.value = response.total_account;
+        totalCapital.value = response.total_capital;
+        totalProfit.value = response.total_profit;
+      });
+    };
+
+    // Fetch dashboard data when the component is mounted
+    onMounted(SetAccountData);
+
+    // Return reactive variables and functions
+    return {
+      totalCapital,
+      totalProfit,
+      totalAccount,
+    };
   },
 };

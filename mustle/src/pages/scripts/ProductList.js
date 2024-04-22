@@ -1,108 +1,158 @@
-import axios from "axios";
+import { ref, onMounted } from "vue";
+import {
+  GetAllProducts,
+  GetProductById,
+  AddProduct,
+  UpdateProduct,
+  DeleteProduct,
+} from "../api/api_requests";
 
 export default {
   name: "ProductList",
-  data() {
-    return {
-      products: [], // Array to store products
-      showAddProductDialog: false, // Boolean to control visibility of Add Product dialog
-      newProduct: {
-        // Object to store data of new product being added
-        product_name: "",
-        retail: 0,
-        resell: 0,
-        quantity: 0,
+  setup() {
+    // Define reactive variables using ref()
+    const products = ref([]); // Array to store products
+    const showProductActionDialog = ref(false); // Boolean to control visibility of Add Product dialog
+    const productInfo = ref({
+      // Object to store data of new product being added
+      product_name: "",
+      retail: 0,
+      resell: 0,
+      quantity: 0,
+    });
+    const columns = ref([
+      // Define table columns
+      {
+        name: "product_name",
+        label: "Product Name",
+        align: "left",
+        field: "product_name",
       },
-      columns: [
-        // Define table columns
-        {
-          name: "product_name",
-          label: "Product Name",
-          align: "left",
-          field: "product_name",
-        },
-        {
-          name: "retail",
-          label: "Retail Price",
-          align: "left",
-          field: "retail",
-        },
-        {
-          name: "resell",
-          label: "Resell Price",
-          align: "left",
-          field: "resell",
-        },
-        {
-          name: "quantity",
-          label: "Quantity",
-          align: "left",
-          field: "quantity",
-        },
-        { name: "actions", label: "Actions", align: "left", field: "actions" },
-      ],
+      { name: "retail", label: "Retail Price", align: "left", field: "retail" },
+      { name: "resell", label: "Resell Price", align: "left", field: "resell" },
+      { name: "quantity", label: "Quantity", align: "left", field: "quantity" },
+      { name: "actions", label: "Actions", align: "left", field: "actions" },
+    ]);
+
+    // isEditMode is a boolean to check if currently in edit mode or not
+    let isEditMode = ref(false);
+    let currentEditingProduct = ref(null);
+
+    const SetAllProductsData = async () => {
+      GetAllProducts().then((response) => {
+        products.value = response;
+      });
     };
-  },
-  methods: {
-    // Method to fetch products from the backend
-    async fetchProducts() {
-      try {
-        // Make an HTTP request to fetch products from the backend
-        // Replace 'http://localhost:3000/products' with your actual backend endpoint
-        const response = await axios.get("http://localhost:3000/products");
-        this.products = response.data;
-      } catch (error) {
-        console.error("Error fetching products:", error);
-      }
-    },
-    // Method to show the Add Product dialog
-    showAddProductDialog() {
-      this.showAddProductDialog = true;
-    },
+
+    // Fetch products when the component is mounted
+    onMounted(SetAllProductsData);
+
+    const ProductActionDialog = () => {
+      showProductActionDialog.value = true;
+    };
+
     // Method to add a new product
-    async addProduct() {
-      try {
-        // Make an HTTP request to add the new product to the backend
-        // Replace 'http://localhost:3000/products' with your actual backend endpoint
-        await axios.post("http://localhost:3000/products", this.newProduct);
-        // Refresh the list of products after adding the new product
-        this.fetchProducts();
-        // Reset the newProduct object and close the Add Product dialog
-        this.newProduct = {
-          product_name: "",
-          retail: 0,
-          resell: 0,
-          quantity: 0,
-        };
-        this.showAddProductDialog = false;
-      } catch (error) {
-        console.error("Error adding product:", error);
-      }
-    },
-    // Method to cancel adding a new product
-    cancelAddProduct() {
-      // Reset the newProduct object and close the Add Product dialog
-      this.newProduct = {
+    const addProduct = async () => {
+      //Call function from api_request that uses productInfo.value as Payload
+      AddProduct(productInfo.value);
+
+      //Reset Product Information Inputs
+      productInfo.value = {
         product_name: "",
         retail: 0,
         resell: 0,
         quantity: 0,
       };
-      this.showAddProductDialog = false;
-    },
-    // Method to edit a product
-    editProduct(product) {
-      // Implement edit functionality here
-      console.log("Edit product:", product);
-    },
+
+      //Close dialog
+      showProductActionDialog.value = false;
+
+      //Refresh Table
+      SetAllProductsData();
+    };
+
+    // Cancel Adding New Product
+    const cancelAddProduct = () => {
+      // Reset the newProduct object and close the Add Product dialog
+      productInfo.value = {
+        product_name: "",
+        retail: 0,
+        resell: 0,
+        quantity: 0,
+      };
+
+      //When Cancelling the dialog it sets edit mode to false
+      isEditMode.value = false;
+
+      //Close Dialog
+      showProductActionDialog.value = false;
+    };
+
+    // Method to update a product
+    const updateProduct = async () => {
+      //Call function from api_request that uses productInfo.value as Payload and currentEditingProduct.value as id
+      UpdateProduct(currentEditingProduct.value, productInfo.value);
+
+      //Reset Product Information Inputs
+      productInfo.value = {
+        product_name: "",
+        retail: 0,
+        resell: 0,
+        quantity: 0,
+      };
+
+      currentEditingProduct.value = null;
+
+      //When Cancelling the dialog it sets edit mode to false
+      isEditMode.value = false;
+
+      //Close dialog
+      showProductActionDialog.value = false;
+
+      //Refresh Table
+      SetAllProductsData();
+    };
+
+    // Edit Product
+    const editProduct = (productId) => {
+      isEditMode.value = true;
+      currentEditingProduct.value = productId;
+      showProductActionDialog.value = true;
+
+      GetProductById(productId).then((response) => {
+        productInfo.value = {
+          product_name: response.product_name,
+          retail: response.retail,
+          resell: response.resell,
+          quantity: response.quantity,
+        };
+      });
+
+      console.log("Edit product:", currentEditingProduct.value);
+    };
+
     // Method to delete a product
-    deleteProduct(product) {
-      // Implement delete functionality here
-      console.log("Delete product:", product);
-    },
-  },
-  created() {
-    // Fetch products when the component is created
-    this.fetchProducts();
+    const deleteProduct = (productId) => {
+      DeleteProduct(productId);
+
+      //Refresh Table
+      SetAllProductsData();
+      console.log("Deleted product:", productId);
+    };
+
+    // Return reactive variables and functions
+    return {
+      products,
+      productInfo,
+      columns,
+      showProductActionDialog,
+      isEditMode,
+      ProductActionDialog,
+      addProduct,
+      cancelAddProduct,
+      editProduct,
+      deleteProduct,
+      updateProduct,
+    };
   },
 };
